@@ -16,6 +16,10 @@ let userSchema = new Schema({
     apellido: {
         type: String,
         required: [true]
+    },
+    edad: {
+        type: Number,
+        required: [true]
     }
 });
 
