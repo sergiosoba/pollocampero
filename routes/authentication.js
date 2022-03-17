@@ -1,6 +1,9 @@
 const mongoose = require('mongoose');
 const User = mongoose.model('users');
 
+const argon2i = require('argon2-ffi').argon2i;
+const crypto = require('crypto');
+
 module.exports = app => {
 
     app.get("/", (req, res) => {
@@ -45,34 +48,66 @@ module.exports = app => {
 
     app.post('/login', async (req, res) => {
 
+        var reponse = {};
+
         const { rEmail, rPassword } = req.body;
         if (rEmail == null || rPassword == null) {
-            res.send('Invalid credentials');
+            reponse.code = 1;
+            reponse.msg = "Invalid credentials";
+            res.send(reponse);
             return;
         }
 
         var userAccount = await User.findOne({ email: rEmail });
         if (userAccount != null) {
-            if (rPassword == userAccount.password) {
 
-                userAccount.lastAuthentication = Date.now();
-                await userAccount.save();
+            /*try {
+                if (await argon2.verify("<big long hash>", "password")) {
+                    // password match
+                } else {
+                    // password did not match
+                }
+            } catch (err) {
+                // internal failure
+            }*/
 
-                console.log("Retrieving account...");
-                res.send(userAccount);
-                return;
-            }
+            argon2i.verify(userAccount.password, rPassword).then(async (success) => {
+                if (success) {
+                    userAccount.lastAuthentication = Date.now();
+                    await userAccount.save();
+
+                    console.log("Retrieving account...");
+
+                    reponse.code = 0;
+                    reponse.msg = "Account found";
+                    reponse.data = userAccount;
+                    res.send(reponse);
+                    return;
+                }
+                else {
+                    reponse.code = 1;
+                    reponse.msg = "Invalid credentials";
+                    res.send(reponse);
+                    return;
+                }
+            });
+        } else {
+            reponse.code = 1;
+            reponse.msg = "Invalid credentials";
+            res.send(reponse);
+            return;
         }
-
-        res.send('Invalid credentials');
-        return;
     });
 
     app.post('/create', async (req, res) => {
 
+        var reponse = {};
+
         const { rEmail, rPassword, rFirstName, rLastName } = req.body;
         if (rEmail == null || rPassword == null) {
-            res.send('Invalid credentials');
+            reponse.code = 1;
+            reponse.msg = "Invalid credentials";
+            res.send(reponse);
             return;
         }
 
@@ -80,22 +115,33 @@ module.exports = app => {
         if (userAccount == null) {
             console.log("Create new account...");
 
-            var newAccount = new User({
-                email: rEmail,
-                password: rPassword,
+            crypto.randomBytes(32, function (err, salt) {
+                argon2i.hash(rPassword, salt).then(async (hash) => {
 
-                firstName: rFirstName,
-                lastName: rLastName,
+                    var newAccount = new User({
+                        email: rEmail,
+                        password: hash,
+                        salt: salt,
 
-                lastAuthentication: Date.now()
+                        firstName: rFirstName,
+                        lastName: rLastName,
+
+                        lastAuthentication: Date.now()
+                    });
+
+                    await newAccount.save();
+                    
+                    reponse.code = 0;
+                    reponse.msg = "Account created";
+                    reponse.data = newAccount;
+                    res.send(reponse);
+                    return;
+                });
             });
-
-            await newAccount.save();
-
-            res.send(newAccount);
-            return;
         } else {
-            res.send('Email is already taken');
+            reponse.code = 1;
+            reponse.msg = "Email is already taken";
+            res.send(reponse);
         }
     });
 }
