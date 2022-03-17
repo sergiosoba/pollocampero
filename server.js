@@ -1,54 +1,21 @@
-var express = require("express");
-const bodyParser = require('body-parser');
-const User = require('./user');
-var mongoose = require('mongoose');
+const express = require('express');
+const keys = require('./config/keys.js');
+const bodyParser = require('body-parser'); // npm i body-parser --save
 
+const app = express();
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false })); // app.use(bodyParser.json());
 
-var app = express();
-app.use(bodyParser.json());
+// Setup Database
+const mongoose = require('mongoose');
+mongoose.connect(keys.mongoURI, { useNewUrlParser: true, useUnifiedTopology: true });
 
-mongoose.connect(process.env.MONGO_URL || 'mongodb+srv://sergiosoba:Q1oUW7NajEZkvjJQ@cluster0.0dwxx.mongodb.net/pollocampero', { useNewUrlParser: true });
+// Setup models
+require('./model/User');
 
-app.get("/", (req, res) => {
-    res.send("Hello World");
-})
+// Setup routes
+require('./routes/authentication')(app);
 
-app.get("/user/:id", (req, res) => {
-
-    var dummyData = {
-        "id": req.params["id"],
-        "username": "Sergiosoba",
-        "level": 5
-    }
-
-    // JSON
-    res.json(dummyData);
-    //res.send(dummyData.username);
-})
-
-app.post('/user', async (req, res) => {
-    let user = User(req.body);
-    try {
-        const nuevoUsuario = await user.save();
-        return res.status(201).json({
-            mensajes: "ok"
-        });
-    } catch (error) {
-        return res.status(500).json(error);
-    }
-});
-
-app.get('/users', async (req, res) => {
-    try {
-        const userList = await User.find();
-        return res.status(201).json({
-            userList
-        });
-    } catch (error) {
-        return res.status(500);
-    }
-});
-
-app.listen(process.env.PORT || 5555, () => {
-    console.log("Server has started!");
+app.listen(keys.port, () => {
+    console.log("Server has started at port: " + keys.port);
 });
