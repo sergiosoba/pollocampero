@@ -6,7 +6,7 @@ const bodyParser = require('body-parser'); // npm i body-parser --save
 const app = express();
 app.use(bodyParser.json());
 // parse application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: false })); // app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
 
 // Setup Database
 const mongoose = require('mongoose');

@@ -59,7 +59,7 @@ exports.login = async (req, res) => {
         return;
     }
 
-    var userAccount = await User.findOne({ email: rEmail });
+    var userAccount = await User.findOne({ email: rEmail }, 'password firstName lastName');
     if (userAccount != null) {
 
         argon2i.verify(userAccount.password, rPassword).then(async (success) => {
@@ -71,7 +71,7 @@ exports.login = async (req, res) => {
 
                 reponse.code = 0;
                 reponse.msg = "Account found";
-                reponse.data = userAccount;
+                reponse.data = (({ firstName, lastName }) => ({ firstName, lastName }))(userAccount); //userAccount;
                 res.send(reponse);
                 return;
             }
