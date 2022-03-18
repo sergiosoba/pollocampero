@@ -50,8 +50,8 @@ exports.login = async (req, res) => {
     console.log("login");
 
     var reponse = {};
-
     const { rEmail, rPassword } = req.body;
+
     if (rEmail == null || rPassword == null) {
         reponse.code = 1;
         reponse.msg = "Invalid credentials";
@@ -93,7 +93,6 @@ exports.login = async (req, res) => {
 exports.create = async (req, res) => {
 
     var reponse = {};
-
     const { rEmail, rPassword, rFirstName, rLastName } = req.body;
 
     if (rEmail == null || rPassword == null) {
@@ -125,7 +124,7 @@ exports.create = async (req, res) => {
 
                 reponse.code = 0;
                 reponse.msg = "Account created";
-                reponse.data = newAccount;
+                reponse.data = (({ firstName, lastName }) => ({ firstName, lastName }))(newAccount);
                 res.send(reponse);
                 return;
             });
