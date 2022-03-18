@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const User = mongoose.model('users');
+const User = require('../model/User');
 
 const argon2i = require('argon2-ffi').argon2i;
 const crypto = require('crypto');

@@ -12,4 +12,4 @@ const accountSchema = new Schema({
     lastAuthentication: Date
 });
 
-mongoose.model('users', accountSchema); 
+module.exports = mongoose.model('users', accountSchema);
