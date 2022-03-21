@@ -4,6 +4,8 @@ const User = require('../model/User'); // const User = mongoose.model('users');
 const argon2i = require('argon2-ffi').argon2i;
 const crypto = require('crypto');
 
+const passwordRegex = new RegExp("(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.{6,24})");
+
 exports.index = (req, res) => {
     res.send("Hello World");
 }
@@ -52,7 +54,7 @@ exports.login = async (req, res) => {
     var reponse = {};
     const { rEmail, rPassword } = req.body;
 
-    if (rEmail == null || rPassword == null) {
+    if (rEmail == null || !passwordRegex.test(rPassword)) {
         reponse.code = 1;
         reponse.msg = "Invalid credentials";
         res.send(reponse);
@@ -95,9 +97,16 @@ exports.create = async (req, res) => {
     var reponse = {};
     const { rEmail, rPassword, rFirstName, rLastName } = req.body;
 
-    if (rEmail == null || rPassword == null) {
+    if (rEmail == null) {
         reponse.code = 1;
         reponse.msg = "Invalid credentials";
+        res.send(reponse);
+        return;
+    }
+
+    if (!passwordRegex.test(rPassword)) {
+        reponse.code = 1;
+        reponse.msg = "Unsafe password";
         res.send(reponse);
         return;
     }
