@@ -9,7 +9,12 @@ const accountSchema = new Schema({
     firstName: String,
     lastName: String,
 
+    gameData: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Games'
+    }],
+
     lastAuthentication: Date
 });
 
-module.exports = mongoose.model('users', accountSchema);
+module.exports = mongoose.model('Users', accountSchema);
